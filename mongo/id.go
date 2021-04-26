@@ -10,22 +10,24 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 )
 
-type ID string
+type ID struct {
+	id string
+}
 
-var NilID = ID(primitive.NilObjectID.Hex())
+var NilID = ID(ID{primitive.NilObjectID.Hex()})
 
-var EmptyID = ID("")
+var EmptyID = ID{""}
 
 func NewID() ID {
-	return ID(primitive.NewObjectID().Hex())
+	return ID{primitive.NewObjectID().Hex()}
 }
 
 func IDFromString(id string) (ID, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return ID(""), err
+		return ID{""}, err
 	}
-	return ID(objectID.Hex()), nil
+	return ID{objectID.Hex()}, nil
 }
 
 func IDFromInterface(id interface{}) (ID, error) {
@@ -40,11 +42,11 @@ func IDFromInterface(id interface{}) (ID, error) {
 }
 
 func (id ID) String() string {
-	return string(id)
+	return string(id.id)
 }
 
 func (id ID) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	b, err := hex.DecodeString(string(id))
+	b, err := hex.DecodeString(string(id.id))
 	if err != nil {
 		return bsontype.ObjectID, bsoncore.AppendObjectID(nil, primitive.NilObjectID), err
 	}
@@ -60,12 +62,12 @@ func (id *ID) UnmarshalBSONValue(t bsontype.Type, val []byte) error {
 	var oid [12]byte
 	copy(oid[:], val[:])
 
-	*id = ID(primitive.ObjectID(oid).Hex())
+	*id = ID{primitive.ObjectID(oid).Hex()}
 	return nil
 }
 
 func (id ID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(string(id))
+	return json.Marshal(string(id.id))
 }
 
 func (i *ID) UnmarshalJSON(val []byte) error {
@@ -74,6 +76,6 @@ func (i *ID) UnmarshalJSON(val []byte) error {
 	if err != nil {
 		return err
 	}
-	*i = ID(idStr)
+	*i = ID{idStr}
 	return nil
 }
